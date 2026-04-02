@@ -341,7 +341,7 @@ export default function FocusTimer({ intent, initialDuration = 25 * 60, onEnd }:
                   const records = saved ? JSON.parse(saved) : [];
                   if (actualTime > 0) {
                     records.push({
-                      id: crypto.randomUUID(),
+                      id: generateId(),
                       intent: intent + " (未完成)",
                       duration: actualTime,
                       timestamp: Date.now()
@@ -353,6 +353,15 @@ export default function FocusTimer({ intent, initialDuration = 25 * 60, onEnd }:
               }
             }}
             className="text-xs opacity-40 hover:opacity-100 transition-opacity tracking-widest border-b border-transparent hover:border-current pb-1"
+          >
+            放弃
+          </button>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+n-opacity tracking-widest border-b border-transparent hover:border-current pb-1"
           >
             放弃
           </button>
