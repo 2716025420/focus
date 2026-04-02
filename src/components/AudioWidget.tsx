@@ -20,6 +20,9 @@ export default function AudioWidget({ isInteracted }: { isInteracted: boolean })
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 核心优化：只有在用户交互后且非静音状态下才加载音频资源
+  const audioSrc = (isInteracted && !isMuted) ? currentTrack.url : "";
+
   // 点击外部关闭菜单
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -108,7 +111,6 @@ export default function AudioWidget({ isInteracted }: { isInteracted: boolean })
   };
 
   // 列表包含内置音乐和用户上传的自定义音乐
-  const allTracks = [...AUDIO_TRACKS, ...customTracks];
   const isCurrentTrackCustom = customTracks.some(t => t.id === currentTrack.id);
   const shouldLoop = !isCurrentTrackCustom || customTracks.length <= 1;
 
@@ -221,15 +223,6 @@ export default function AudioWidget({ isInteracted }: { isInteracted: boolean })
           onClick={() => setIsOpen(!isOpen)}
           className={`w-12 h-12 rounded-full backdrop-blur-md flex items-center justify-center transition-all duration-300 shadow-sm hover:scale-105 ${
             isOpen ? "bg-khaki-dark text-white" : "bg-khaki-light/30 text-text-brown/70 hover:text-text-brown hover:bg-khaki-light/60"
-          }`}
-        >
-          <Music className="w-5 h-5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-over:bg-khaki-light/60"
           }`}
         >
           <Music className="w-5 h-5" />
