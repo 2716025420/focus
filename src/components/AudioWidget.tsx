@@ -12,7 +12,7 @@ export const AUDIO_TRACKS = [
 export default function AudioWidget({ isInteracted }: { isInteracted: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [customTrack, setCustomTrack] = useState<{ id: string, name: string, url: string, icon: any } | null>(null);
+  const [customTracks, setCustomTracks] = useState<{ id: string, name: string, url: string, icon: any }[]>([]);
   const [currentTrack, setCurrentTrack] = useState<{ id: string, name: string, url: string, icon: any }>(AUDIO_TRACKS[0]);
   const [isDragging, setIsDragging] = useState(false);
   
@@ -55,21 +55,37 @@ export default function AudioWidget({ isInteracted }: { isInteracted: boolean })
   }, [isMuted, currentTrack]);
 
   // 处理文件上传
-  const handleFileUpload = (file: File) => {
-    if (file && file.type.startsWith("audio/")) {
-      const url = URL.createObjectURL(file);
-      const newTrack = { 
-        id: "custom", 
-        // 截断过长的文件名以防破坏 UI
-        name: file.name.length > 8 ? file.name.substring(0, 8) + "..." : file.name, 
-        url: url, 
-        icon: FileAudio 
-      };
-      setCustomTrack(newTrack);
-      setCurrentTrack(newTrack);
+  const handleFileUpload = (files: FileList | File[]) => {
+    const newTracks: { id: string, name: string, url: string, icon: any }[] = [];
+    
+    Array.from(files).forEach((file) => {
+      if (file && file.type.startsWith("audio/")) {
+        const url = URL.createObjectURL(file);
+        newTracks.push({
+          id: `custom-${crypto.randomUUID()}`,
+          name: file.name.length > 15 ? file.name.substring(0, 15) + "..." : file.name,
+          url: url,
+          icon: FileAudio
+        });
+      }
+    });
+
+    if (newTracks.length > 0) {
+      setCustomTracks((prev) => [...prev, ...newTracks]);
+      setCurrentTrack(newTracks[0]); // 默认播放新上传的第一首
       if (isMuted) setIsMuted(false);
     } else {
       alert("请上传有效的音频文件 (如 .mp3, .wav 等)。");
+    }
+  };
+
+  const handleTrackEnd = () => {
+    const isCustom = customTracks.some(t => t.id === currentTrack.id);
+    if (isCustom && customTracks.length > 1) {
+      // 播放列表的下一首
+      const currentIndex = customTracks.findIndex(t => t.id === currentTrack.id);
+      const nextIndex = (currentIndex + 1) % customTracks.length;
+      setCurrentTrack(customTracks[nextIndex]);
     }
   };
 
@@ -87,19 +103,22 @@ export default function AudioWidget({ isInteracted }: { isInteracted: boolean })
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileUpload(e.dataTransfer.files[0]);
+      handleFileUpload(e.dataTransfer.files);
     }
   };
 
   // 列表包含内置音乐和用户上传的自定义音乐
-  const allTracks = customTrack ? [...AUDIO_TRACKS, customTrack] : AUDIO_TRACKS;
+  const allTracks = [...AUDIO_TRACKS, ...customTracks];
+  const isCurrentTrackCustom = customTracks.some(t => t.id === currentTrack.id);
+  const shouldLoop = !isCurrentTrackCustom || customTracks.length <= 1;
 
   return (
     <div ref={containerRef} className="fixed bottom-8 right-8 z-50 flex flex-col items-end space-y-4">
       <audio
         ref={audioRef}
         src={currentTrack.url}
-        loop
+        loop={shouldLoop}
+        onEnded={handleTrackEnd}
         playsInline
       />
       
@@ -108,7 +127,7 @@ export default function AudioWidget({ isInteracted }: { isInteracted: boolean })
           <p className="text-xs text-text-brown/50 tracking-widest uppercase mb-1">环境音</p>
           
           <div className="flex flex-col space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-            {allTracks.map((track) => {
+            {AUDIO_TRACKS.map((track) => {
               const Icon = track.icon;
               const isActive = currentTrack.id === track.id;
               return (
@@ -127,6 +146,31 @@ export default function AudioWidget({ isInteracted }: { isInteracted: boolean })
                 </button>
               );
             })}
+
+            {customTracks.length > 0 && (
+              <>
+                <div className="w-full border-t border-dashed border-khaki-dark/30 my-1" />
+                {customTracks.map((track) => {
+                  const Icon = track.icon;
+                  const isActive = currentTrack.id === track.id;
+                  return (
+                    <button
+                      key={track.id}
+                      onClick={() => {
+                        setCurrentTrack(track);
+                        if (isMuted) setIsMuted(false);
+                      }}
+                      className={`flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-300 w-full ${
+                        isActive ? "bg-khaki-dark/20 text-text-brown" : "text-text-brown/50 hover:bg-khaki-light/30 hover:text-text-brown/80"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span className="text-sm tracking-widest truncate">{track.name}</span>
+                    </button>
+                  );
+                })}
+              </>
+            )}
           </div>
 
           <div className="h-px w-full bg-khaki-light/50 my-2" />
@@ -144,11 +188,12 @@ export default function AudioWidget({ isInteracted }: { isInteracted: boolean })
             <input
               type="file"
               accept="audio/*"
+              multiple
               className="hidden"
               ref={fileInputRef}
               onChange={(e) => {
                 if (e.target.files && e.target.files.length > 0) {
-                  handleFileUpload(e.target.files[0]);
+                  handleFileUpload(e.target.files);
                 }
                 e.target.value = ""; // Reset input so same file can be selected again
               }}
