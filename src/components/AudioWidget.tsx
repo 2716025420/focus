@@ -116,7 +116,8 @@ export default function AudioWidget({ isInteracted }: { isInteracted: boolean })
     <div ref={containerRef} className="fixed bottom-8 right-8 z-50 flex flex-col items-end space-y-4">
       <audio
         ref={audioRef}
-        src={currentTrack.url}
+        src={audioSrc}
+        preload="none"
         loop={shouldLoop}
         onEnded={handleTrackEnd}
         playsInline
@@ -220,6 +221,15 @@ export default function AudioWidget({ isInteracted }: { isInteracted: boolean })
           onClick={() => setIsOpen(!isOpen)}
           className={`w-12 h-12 rounded-full backdrop-blur-md flex items-center justify-center transition-all duration-300 shadow-sm hover:scale-105 ${
             isOpen ? "bg-khaki-dark text-white" : "bg-khaki-light/30 text-text-brown/70 hover:text-text-brown hover:bg-khaki-light/60"
+          }`}
+        >
+          <Music className="w-5 h-5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+over:bg-khaki-light/60"
           }`}
         >
           <Music className="w-5 h-5" />
