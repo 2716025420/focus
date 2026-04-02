@@ -18,6 +18,15 @@ export default function FocusTimer({ intent, initialDuration = 25 * 60, onEnd }:
   const settingsRef = useRef<HTMLDivElement>(null);
   const settingsBtnRef = useRef<HTMLButtonElement>(null);
 
+  // 安全 ID 生成函数 (处理非安全上下文下的 crypto.randomUUID 失效问题)
+  const generateId = () => {
+    try {
+      return crypto.randomUUID();
+    } catch (e) {
+      return `record-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    }
+  };
+
   // 自动进入全屏
   useEffect(() => {
     const enterFullscreen = async () => {
@@ -93,7 +102,7 @@ export default function FocusTimer({ intent, initialDuration = 25 * 60, onEnd }:
         const saved = localStorage.getItem("focus_records");
         const records = saved ? JSON.parse(saved) : [];
         records.push({
-          id: crypto.randomUUID(),
+          id: generateId(),
           intent: intent,
           duration: initialDuration,
           timestamp: Date.now()
