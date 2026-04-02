@@ -361,12 +361,3 @@ export default function FocusTimer({ intent, initialDuration = 25 * 60, onEnd }:
     </div>
   );
 }
-n-opacity tracking-widest border-b border-transparent hover:border-current pb-1"
-          >
-            放弃
-          </button>
-        </motion.div>
-      </div>
-    </div>
-  );
-}
