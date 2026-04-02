@@ -21,7 +21,7 @@ export default function AudioWidget({ isInteracted }: { isInteracted: boolean })
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 核心优化：只有在用户交互后且非静音状态下才加载音频资源
-  const audioSrc = (isInteracted && !isMuted) ? currentTrack.url : "";
+  const audioSrc = (isInteracted && !isMuted) ? currentTrack.url : undefined;
 
   // 点击外部关闭菜单
   useEffect(() => {
