@@ -1,0 +1,9 @@
+services:
+  focus-app:
+    build: .
+    container_name: focus-app
+    ports:
+      - "81:3000"
+    restart: always
+    environment:
+      - NODE_ENV=production
