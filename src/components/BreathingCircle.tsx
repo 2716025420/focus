@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 // 采用医学上著名的 4-7-8 放松呼吸法 (Dr. Andrew Weil)
 // 被广泛证明能有效激活副交感神经，快速降低心率，平复焦虑并进入深度专注/放松状态
@@ -98,37 +98,36 @@ export default function BreathingCircle({ onComplete }: { onComplete: () => void
   else if (phaseIndex === 2) dropVariant = "exhale";
   else if (phaseIndex === 3) dropVariant = "holdBottom";
 
-  const dropVariants = {
-    inhale: { 
-      scale: [0, 1], 
-      y: ["-35vh", "-35vh"], 
-      opacity: [0, 1], 
-      rotate: 45, 
-      transition: { duration: 4, ease: "easeOut" } 
+  const dropVariants: Variants = {
+    inhale: {
+      scale: [0, 1],
+      y: ["-35vh", "-35vh"],
+      opacity: [0, 1],
+      rotate: 45,
+      transition: { duration: 4, ease: "easeOut" }
     },
-    holdTop: { 
-      scale: 1, 
-      y: "-35vh", 
-      opacity: 1, 
-      rotate: 45, 
-      transition: { duration: 7, ease: "linear" } 
+    holdTop: {
+      scale: 1,
+      y: "-35vh",
+      opacity: 1,
+      rotate: 45,
+      transition: { duration: 7, ease: "linear" }
     },
-    exhale: { 
-      scale: 1, 
-      y: 0, 
-      opacity: 1, 
-      rotate: 45, 
+    exhale: {
+      scale: 1,
+      y: 0,
+      opacity: 1,
+      rotate: 45,
       transition: { duration: 8, ease: "easeInOut" } // 配合长达8秒的缓慢呼气，水滴也缓慢下落
     },
-    holdBottom: { 
-      scale: 0, 
-      y: 0, 
-      opacity: 0, 
-      rotate: 45, 
-      transition: { duration: 0.5, ease: "easeOut" } 
+    holdBottom: {
+      scale: 0,
+      y: 0,
+      opacity: 0,
+      rotate: 45,
+      transition: { duration: 0.5, ease: "easeOut" }
     },
   };
-
   const ripples = [
     { delay: 0, baseScale: 1 },
     { delay: 0.3, baseScale: 1.2 },
