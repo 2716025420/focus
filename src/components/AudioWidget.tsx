@@ -1,0 +1,185 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { Volume2, VolumeX, Music, CloudRain, Waves, Trees, Upload, FileAudio } from "lucide-react";
+
+export const AUDIO_TRACKS = [
+  { id: "rain", name: "雨声", url: "/audio/rain.wav", icon: CloudRain },
+  { id: "ocean", name: "海浪", url: "/audio/ocean.wav", icon: Waves },
+  { id: "forest", name: "森林", url: "/audio/forest.wav", icon: Trees },
+];
+
+export default function AudioWidget({ isInteracted }: { isInteracted: boolean }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [customTrack, setCustomTrack] = useState<{ id: string, name: string, url: string, icon: any } | null>(null);
+  const [currentTrack, setCurrentTrack] = useState<{ id: string, name: string, url: string, icon: any }>(AUDIO_TRACKS[0]);
+  const [isDragging, setIsDragging] = useState(false);
+  
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 点击外部关闭菜单
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  // 当用户在首页发生交互后，自动解除静音并尝试播放
+  useEffect(() => {
+    if (isInteracted && audioRef.current && isMuted) {
+      setIsMuted(false);
+      audioRef.current.play().catch(() => console.log("Autoplay blocked"));
+    }
+  }, [isInteracted]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.3; // 背景音量设置得柔和一些
+      if (isMuted) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play().catch(() => console.log("Play blocked"));
+      }
+    }
+  }, [isMuted, currentTrack]);
+
+  // 处理文件上传
+  const handleFileUpload = (file: File) => {
+    if (file && file.type.startsWith("audio/")) {
+      const url = URL.createObjectURL(file);
+      const newTrack = { 
+        id: "custom", 
+        // 截断过长的文件名以防破坏 UI
+        name: file.name.length > 8 ? file.name.substring(0, 8) + "..." : file.name, 
+        url: url, 
+        icon: FileAudio 
+      };
+      setCustomTrack(newTrack);
+      setCurrentTrack(newTrack);
+      if (isMuted) setIsMuted(false);
+    } else {
+      alert("请上传有效的音频文件 (如 .mp3, .wav 等)。");
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  // 列表包含内置音乐和用户上传的自定义音乐
+  const allTracks = customTrack ? [...AUDIO_TRACKS, customTrack] : AUDIO_TRACKS;
+
+  return (
+    <div ref={containerRef} className="fixed bottom-8 right-8 z-50 flex flex-col items-end space-y-4">
+      <audio
+        ref={audioRef}
+        src={currentTrack.url}
+        loop
+        playsInline
+      />
+      
+      {isOpen && (
+        <div className="bg-warmwhite/80 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-khaki-light/50 flex flex-col space-y-3 mb-2 animate-in fade-in slide-in-from-bottom-4 duration-300 w-48">
+          <p className="text-xs text-text-brown/50 tracking-widest uppercase mb-1">环境音</p>
+          
+          <div className="flex flex-col space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+            {allTracks.map((track) => {
+              const Icon = track.icon;
+              const isActive = currentTrack.id === track.id;
+              return (
+                <button
+                  key={track.id}
+                  onClick={() => {
+                    setCurrentTrack(track);
+                    if (isMuted) setIsMuted(false);
+                  }}
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-300 w-full ${
+                    isActive ? "bg-khaki-dark/20 text-text-brown" : "text-text-brown/50 hover:bg-khaki-light/30 hover:text-text-brown/80"
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span className="text-sm tracking-widest truncate">{track.name}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="h-px w-full bg-khaki-light/50 my-2" />
+
+          {/* Upload Custom Audio Button / Drop Zone */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`cursor-pointer flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl transition-all duration-300 text-center ${
+              isDragging ? "border-khaki-dark bg-khaki-light/40 scale-[1.02]" : "border-khaki-light hover:border-khaki-dark hover:bg-khaki-light/20"
+            }`}
+          >
+            <input
+              type="file"
+              accept="audio/*"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={(e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                  handleFileUpload(e.target.files[0]);
+                }
+                e.target.value = ""; // Reset input so same file can be selected again
+              }}
+            />
+            <Upload className={`w-5 h-5 mb-2 transition-colors ${isDragging ? "text-khaki-dark" : "text-text-brown/40"}`} />
+            <span className="text-xs text-text-brown/60 leading-tight whitespace-pre-line pointer-events-none">
+              {isDragging ? "松开添加文件" : "点击或拖拽\n添加自定义音乐"}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center space-x-3">
+        {/* Mute Toggle */}
+        <button
+          onClick={() => setIsMuted(!isMuted)}
+          className="w-12 h-12 rounded-full bg-khaki-light/30 backdrop-blur-md flex items-center justify-center text-text-brown/70 hover:text-text-brown hover:bg-khaki-light/60 transition-all duration-300 shadow-sm hover:scale-105"
+        >
+          {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+        </button>
+
+        {/* Track Selector Toggle */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-12 h-12 rounded-full backdrop-blur-md flex items-center justify-center transition-all duration-300 shadow-sm hover:scale-105 ${
+            isOpen ? "bg-khaki-dark text-white" : "bg-khaki-light/30 text-text-brown/70 hover:text-text-brown hover:bg-khaki-light/60"
+          }`}
+        >
+          <Music className="w-5 h-5" />
+        </button>
+      </div>
+    </div>
+  );
+}
