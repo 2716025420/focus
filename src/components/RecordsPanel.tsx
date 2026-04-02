@@ -38,34 +38,48 @@ export default function RecordsPanel({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-warmwhite/90 backdrop-blur-sm p-4">
-      <div className="bg-white/60 w-full max-w-md rounded-[2rem] p-8 border border-khaki-light/50 shadow-2xl relative max-h-[80vh] flex flex-col">
+    <div className="fixed inset-0 flex items-center justify-center bg-warmwhite/90 backdrop-blur-sm p-4 z-50">
+      <div className="bg-white/60 w-full max-w-md rounded-3xl p-8 border border-khaki-light/50 shadow-2xl relative max-h-[80vh] flex flex-col">
         <button onClick={onClose} className="absolute top-6 right-6 p-2 rounded-full text-text-brown/40 hover:text-text-brown hover:bg-khaki-light/20 transition-colors">
           <X className="w-5 h-5" />
         </button>
         <h2 className="text-xl font-medium text-text-brown mb-8 tracking-wider">专注记录</h2>
         
-        <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
           {records.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-text-brown/30 space-y-4">
               <Calendar className="w-12 h-12 opacity-50" />
-              <p className="text-sm tracking-widest">还没有记录，今天试着专注一次吧。</p>
+              <p className="text-sm tracking-widest text-center px-4">还没有记录，今天试着专注一次吧。</p>
             </div>
           ) : (
-            records.map(record => (
-              <div key={record.id} className="bg-warmwhite p-5 rounded-2xl flex justify-between items-center border border-khaki-light/30 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex flex-col space-y-2">
-                  <span className="text-text-brown font-medium">{record.intent}</span>
-                  <div className="flex items-center text-text-brown/40 text-xs space-x-1.5">
-                    <Calendar className="w-3 h-3" />
-                    <span>{new Date(record.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+            <div className="flex flex-col">
+              {records.map((record, index) => (
+                <div 
+                  key={record.id} 
+                  className={`py-6 flex justify-between items-center transition-all duration-300 group ${
+                    index !== records.length - 1 ? "border-b border-dashed border-khaki-dark/20" : ""
+                  }`}
+                >
+                  <div className="flex flex-col space-y-1.5 max-w-[70%]">
+                    <span className="text-text-brown font-medium tracking-wide leading-tight group-hover:text-khaki-dark transition-colors">
+                      {record.intent}
+                    </span>
+                    <span className="text-text-brown/30 text-[10px] uppercase tracking-[0.15em] font-light">
+                      {new Date(record.timestamp).toLocaleString(undefined, { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        hour12: false
+                      })}
+                    </span>
+                  </div>
+                  <div className="text-khaki-dark/80 font-light text-xl tabular-nums tracking-tighter shrink-0">
+                    {formatDuration(record.duration > 200 ? record.duration : (record.duration === 25 ? 25 * 60 : record.duration))}
                   </div>
                 </div>
-                <div className="flex items-baseline text-khaki-dark font-medium text-xl tabular-nums">
-                  {formatDuration(record.duration > 200 ? record.duration : (record.duration === 25 ? 25 * 60 : record.duration))}
-                </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </div>

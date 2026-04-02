@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Volume2, VolumeX, Music, CloudRain, Waves, Trees, Upload, FileAudio } from "lucide-react";
+import { Volume2, VolumeX, Music, BookOpen, Pencil, MousePointerClick, Upload, FileAudio } from "lucide-react";
 
 export const AUDIO_TRACKS = [
-  { id: "rain", name: "雨声", url: "/audio/rain.wav", icon: CloudRain },
-  { id: "ocean", name: "海浪", url: "/audio/ocean.wav", icon: Waves },
-  { id: "forest", name: "森林", url: "/audio/forest.wav", icon: Trees },
+  { id: "word", name: "单词", url: "/audio/单词.mp3", icon: BookOpen },
+  { id: "pencil", name: "铅笔", url: "/audio/铅笔.mp3", icon: Pencil },
+  { id: "tap", name: "敲击", url: "/audio/敲击.mp3", icon: MousePointerClick },
 ];
 
 export default function AudioWidget({ isInteracted }: { isInteracted: boolean }) {
