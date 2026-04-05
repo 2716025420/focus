@@ -120,9 +120,12 @@ export default function FocusTimer({ intent, initialDuration = 25 * 60, onEnd }:
     if (!file) return;
 
     const url = URL.createObjectURL(file);
-    if (file.type.startsWith("video/")) {
+    const isVideo = file.type.startsWith("video/") || /\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(file.name);
+    const isImage = file.type.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(file.name);
+
+    if (isVideo) {
       setBgMedia({ type: "video", url });
-    } else if (file.type.startsWith("image/")) {
+    } else if (isImage) {
       setBgMedia({ type: "image", url });
     }
     

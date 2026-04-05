@@ -62,10 +62,19 @@ export default function AudioWidget({ isInteracted }: { isInteracted: boolean })
     const newTracks: { id: string, name: string, url: string, icon: any }[] = [];
     
     Array.from(files).forEach((file) => {
-      if (file && file.type.startsWith("audio/")) {
+      const isAudio = file.type.startsWith("audio/") || /\.(mp3|wav|ogg|aac|m4a|flac)$/i.test(file.name);
+      if (file && isAudio) {
         const url = URL.createObjectURL(file);
+        
+        let fileId = "";
+        try {
+          fileId = crypto.randomUUID();
+        } catch (e) {
+          fileId = Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+        }
+
         newTracks.push({
-          id: `custom-${crypto.randomUUID()}`,
+          id: `custom-${fileId}`,
           name: file.name.length > 15 ? file.name.substring(0, 15) + "..." : file.name,
           url: url,
           icon: FileAudio
